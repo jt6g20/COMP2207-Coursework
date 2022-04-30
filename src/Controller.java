@@ -34,8 +34,6 @@ public class Controller {
                         int buflen = in.read(buf);
                         String firstBuffer = new String(buf,0,buflen);
                         System.out.println("INPUT - " + firstBuffer);
-//                        int firstSpace = firstBuffer.indexOf(" ");
-//                        String command = firstBuffer.substring(0,firstSpace);
 
                         if (firstBuffer.startsWith("LIST")) {
                             String file_list = "LIST " + listToString(index.keySet());
@@ -43,19 +41,20 @@ public class Controller {
                             PrintStream ps = new PrintStream(client.getOutputStream());
                             ps.println(file_list);
                             ps.close();
+                        } else {
+                            int firstSpace = firstBuffer.indexOf(" ");
+                            String command = firstBuffer.substring(0,firstSpace);
+
+                            if (command.equals("STORE")) {
+                                int secondSpace = firstBuffer.indexOf(" ",firstSpace + 1);
+                                String fileName = firstBuffer.substring(firstSpace+1, secondSpace);
+                                int thirdSpace = firstBuffer.indexOf(" ", secondSpace + 1);
+                                String fileSize = firstBuffer.substring(secondSpace+1, thirdSpace);
+                                System.out.println("STORE " + fileName + " " + fileSize);
+                                index.put(fileName, "store in progress");
+                                in.close(); client.close();
+                            }
                         }
-
-//                        if (command.equals("STORE")) {
-//                            int secondSpace = firstBuffer.indexOf(" ",firstSpace + 1);
-//                            String fileName = firstBuffer.substring(firstSpace+1, secondSpace);
-//                            int thirdSpace = firstBuffer.indexOf(" ", secondSpace + 1);
-//                            String fileSize = firstBuffer.substring(secondSpace+1, thirdSpace);
-//                            System.out.println("STORE " + fileName + " " + fileSize);
-//                            index.put(fileName, "store in progress");
-//                            in.close(); client.close();
-//                        }
-
-
 
                         in.close(); client.close();
 
