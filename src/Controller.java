@@ -38,6 +38,7 @@ public class Controller {
                             byte[] buf = new byte[1000];
 //                            int buflen = in.read(buf);
                             String firstBuffer = br.readLine();
+                            if (firstBuffer == null) continue;
                             System.out.println("INPUT - " + firstBuffer);
                             String[] clientArgs = firstBuffer.split(" ");
                             String command = clientArgs[0];
@@ -54,12 +55,16 @@ public class Controller {
                                 //Not sure why this line doesn't work?
 //                                pw.write(file_list.getBytes(StandardCharsets.UTF_8));
                                 pw.println(file_list);
+                                //TODO failure handling
                             } else {
                                 if (command.equals("STORE")) {
                                     String fileName = clientArgs[1];
                                     String fileSize = clientArgs[2];
                                     System.out.println("STORE " + fileName + " " + fileSize);
                                     index.put(fileName, "store in progress");
+                                    System.out.println("STORE_TO " + listToString(dstores));
+                                    pw.println("STORE_TO " + listToString(dstores));
+                                    //TODO failure handling
                                 }
 
                                 if (command.equals("LOAD")) {
@@ -67,12 +72,14 @@ public class Controller {
                                     System.out.println("LOAD " + fileName);
 //                                  Controller selects one the R Dstores that stores that file, let port be its endpoint
                                     pw.println("LOAD_FROM 1234 1234");
+                                    //TODO failure handling
                                 }
                                 if (command.equals("REMOVE")) {
                                     String fileName = clientArgs[1];
                                     index.put(fileName, "remove in progress");
                                     index.put(fileName, "remove complete");
                                     pw.println("REMOVE_COMPLETE");
+                                    //TODO failure handling
                                 }
                             }
                         }
@@ -84,9 +91,9 @@ public class Controller {
         System.out.println();
     }
 
-    static String listToString(Set<String> l) {
+    static String listToString(Set l) {
         StringBuilder sb = new StringBuilder("");
-        for (String s : l) sb.append(" ").append(s);
+        for (var s : l) sb.append(" ").append(s);
         sb.deleteCharAt(0);
         return sb.toString();
     }

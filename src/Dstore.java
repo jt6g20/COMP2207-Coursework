@@ -38,7 +38,6 @@ public class Dstore {
                             String fileName = clientArgs[1];
                             String fileSize = clientArgs[2];
 
-                            PrintStream ps = new PrintStream(client.getOutputStream());
                             pw.println("ACK");
 
                             File outputFile = new File(fileName);
