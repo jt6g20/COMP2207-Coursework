@@ -17,6 +17,7 @@ public class Controller {
         System.out.println(cport + " " + rFactor + " " + timeout + " " + rebalPeriod);
 
         Map<String, String> index = new HashMap<>();
+        Set<Integer> dstores = new HashSet<>();
 
         index.put("oogabooa.txt", "store complete");
         index.put("weewoo.txt", "store complete");
@@ -40,7 +41,11 @@ public class Controller {
                             System.out.println("INPUT - " + firstBuffer);
                             String[] clientArgs = firstBuffer.split(" ");
                             String command = clientArgs[0];
-                            System.out.println(command);
+
+                            if (command.equals("DSTORE")) {
+                                System.out.println("Dstore port added: " + client.getPort());
+                                dstores.add(client.getPort());
+                            }
 
                             if (command.startsWith("LIST")) {
                                 //Have to use starts with? command is 6 characters long with LIST??

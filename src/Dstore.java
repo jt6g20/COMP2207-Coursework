@@ -14,31 +14,32 @@ public class Dstore {
         String fileFolder = args[3];
 
         try {
-            //For communicating with whatever talks to this Dstore, client or controller
+            //For listening for a client
             ServerSocket socket = new ServerSocket(port);
             //For communicating with the controller
             Socket controller = new Socket("Desktop", cport);
             for(;;) {
                 try {
+                    PrintWriter pw = new PrintWriter(controller.getOutputStream(), true);
+                    pw.println("DSTORE connected");
                     System.out.println("waiting for connection");
                     Socket client = socket.accept();
                     try {
                         System.out.println("connected");
                         InputStream in = client.getInputStream();
+                        BufferedReader br = new BufferedReader(new InputStreamReader(in));
                         byte[] buf = new byte[1000];
                         int buflen = in.read(buf);
-                        String firstBuffer = new String(buf,0,buflen);
+                        String firstBuffer = br.readLine();
+                        String[] clientArgs = firstBuffer.split(" ");
+                        String command = clientArgs[0];
 
-                        if (firstBuffer.startsWith("STORE")) {
-                            int firstSpace = firstBuffer.indexOf(" ");
-                            int secondSpace = firstBuffer.indexOf(" ",firstSpace+1);
-                            int thirdSpace = firstBuffer.indexOf(" ", secondSpace + 1);
-                            String fileName = firstBuffer.substring(firstSpace+1,secondSpace);
-                            String fileSize = firstBuffer.substring(secondSpace+1, thirdSpace);
+                        if (command.startsWith("STORE")) {
+                            String fileName = clientArgs[1];
+                            String fileSize = clientArgs[2];
 
                             PrintStream ps = new PrintStream(client.getOutputStream());
-                            ps.println("ACK");
-                            ps.close();
+                            pw.println("ACK");
 
                             File outputFile = new File(fileName);
                             FileOutputStream out = new FileOutputStream(outputFile);
@@ -47,13 +48,8 @@ public class Dstore {
                                 out.write(buf,0,buflen);
                             }
 
-                            PrintStream cps = new PrintStream(controller.getOutputStream());
-                            cps.println("STORE_ACK " + fileName);
-                            cps.close();
+                            pw.println("STORE_ACK " + fileName);
                         }
-
-                        in.close(); client.close();
-
                     } catch (Exception e) {}
                 } catch (Exception e) { System.out.println("error "+e); }
             }

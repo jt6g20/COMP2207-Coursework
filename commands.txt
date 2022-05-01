@@ -1,5 +1,8 @@
 javac Controller.java
 java Controller 4323 10 10 10
 
+javac Dstore.java
+java Dstore 4324 4323 1000 dStore_files
+
 javac -cp client.jar ClientMain.java
 java -cp client.jar;. ClientMain 4323 1000
