@@ -23,40 +23,41 @@ public class Controller {
 
         try {
             ServerSocket socket = new ServerSocket(cport);
-            for(;;) {
+            for (;;) {
                 try {
                     System.out.println("waiting for connection");
                     Socket client = socket.accept();
+                    InputStream in = client.getInputStream();
+                    PrintStream ps = new PrintStream(client.getOutputStream());
                     try {
                         System.out.println("connected");
-                        InputStream in = client.getInputStream();
-                        byte[] buf = new byte[1000];
-                        int buflen = in.read(buf);
-                        String firstBuffer = new String(buf,0,buflen);
-                        System.out.println("INPUT - " + firstBuffer);
+                        for (;;) {
+                            byte[] buf = new byte[1000];
+                            int buflen = in.read(buf);
+                            String firstBuffer = new String(buf,0,buflen);
+                            System.out.println("INPUT - " + firstBuffer);
 
-                        if (firstBuffer.startsWith("LIST")) {
-                            String file_list = "LIST " + listToString(index.keySet());
-                            System.out.println(file_list);
-                            PrintStream ps = new PrintStream(client.getOutputStream());
-                            ps.println(file_list);
-                            ps.close();
-                        } else {
-                            int firstSpace = firstBuffer.indexOf(" ");
-                            String command = firstBuffer.substring(0,firstSpace);
+                            if (firstBuffer.startsWith("LIST")) {
+                                String file_list = "LIST " + listToString(index.keySet());
+                                System.out.println(file_list);
+                                ps.println(file_list);
+                            } else {
+                                int firstSpace = firstBuffer.indexOf(" ");
+                                String command = firstBuffer.substring(0,firstSpace);
 
-                            if (command.equals("STORE")) {
-                                int secondSpace = firstBuffer.indexOf(" ",firstSpace + 1);
-                                String fileName = firstBuffer.substring(firstSpace+1, secondSpace);
-                                int thirdSpace = firstBuffer.indexOf(" ", secondSpace + 1);
-                                String fileSize = firstBuffer.substring(secondSpace+1, thirdSpace);
-                                System.out.println("STORE " + fileName + " " + fileSize);
-                                index.put(fileName, "store in progress");
-                                in.close(); client.close();
+                                if (command.equals("STORE")) {
+                                    int secondSpace = firstBuffer.indexOf(" ",firstSpace + 1);
+                                    String fileName = firstBuffer.substring(firstSpace+1, secondSpace);
+                                    int thirdSpace = firstBuffer.indexOf(" ", secondSpace + 1);
+                                    String fileSize = firstBuffer.substring(secondSpace+1, thirdSpace);
+                                    System.out.println("STORE " + fileName + " " + fileSize);
+                                    index.put(fileName, "store in progress");
+                                }
                             }
                         }
-
-                        in.close(); client.close();
+//                        ps.close();
+//                        in.close();
+//                        client.close();
 
                     } catch (Exception e) {}
                 } catch (Exception e) { System.out.println("error "+e); }

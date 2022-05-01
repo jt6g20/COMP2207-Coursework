@@ -14,7 +14,9 @@ public class Dstore {
         String fileFolder = args[3];
 
         try {
+            //For communicating with whatever talks to this Dstore, client or controller
             ServerSocket socket = new ServerSocket(port);
+            //For communicating with the controller
             Socket controller = new Socket("Desktop", cport);
             for(;;) {
                 try {
@@ -26,7 +28,29 @@ public class Dstore {
                         byte[] buf = new byte[1000];
                         int buflen = in.read(buf);
                         String firstBuffer = new String(buf,0,buflen);
-                        System.out.println("INPUT - " + firstBuffer);
+
+                        if (firstBuffer.startsWith("STORE")) {
+                            int firstSpace = firstBuffer.indexOf(" ");
+                            int secondSpace = firstBuffer.indexOf(" ",firstSpace+1);
+                            int thirdSpace = firstBuffer.indexOf(" ", secondSpace + 1);
+                            String fileName = firstBuffer.substring(firstSpace+1,secondSpace);
+                            String fileSize = firstBuffer.substring(secondSpace+1, thirdSpace);
+
+                            PrintStream ps = new PrintStream(client.getOutputStream());
+                            ps.println("ACK");
+                            ps.close();
+
+                            File outputFile = new File(fileName);
+                            FileOutputStream out = new FileOutputStream(outputFile);
+                            while ((buflen=in.read(buf)) != -1) {
+                                System.out.print("*");
+                                out.write(buf,0,buflen);
+                            }
+
+                            PrintStream cps = new PrintStream(controller.getOutputStream());
+                            cps.println("STORE_ACK " + fileName);
+                            cps.close();
+                        }
 
                         in.close(); client.close();
 
