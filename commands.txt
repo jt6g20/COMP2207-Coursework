@@ -1,0 +1,5 @@
+javac Controller.java
+java Controller 4323 10 10 10
+
+javac -cp client.jar ClientMain.java
+java -cp client.jar;. ClientMain 4323 1000
