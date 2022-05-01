@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Controller {
@@ -28,7 +29,8 @@ public class Controller {
                     System.out.println("waiting for connection");
                     Socket client = socket.accept();
                     InputStream in = client.getInputStream();
-                    PrintStream ps = new PrintStream(client.getOutputStream());
+                    OutputStream out = client.getOutputStream();
+                    PrintStream ps = new PrintStream(out);
                     try {
                         System.out.println("connected");
                         for (;;) {
@@ -40,24 +42,36 @@ public class Controller {
                             if (firstBuffer.startsWith("LIST")) {
                                 String file_list = "LIST " + listToString(index.keySet());
                                 System.out.println(file_list);
+                                //Not sure why this line doesn't work?
+//                                ps.write(file_list.getBytes(StandardCharsets.UTF_8));
                                 ps.println(file_list);
                             } else {
                                 int firstSpace = firstBuffer.indexOf(" ");
                                 String command = firstBuffer.substring(0,firstSpace);
+                                System.out.println(command);
 
                                 if (command.equals("STORE")) {
                                     int secondSpace = firstBuffer.indexOf(" ",firstSpace + 1);
                                     String fileName = firstBuffer.substring(firstSpace+1, secondSpace);
-                                    int thirdSpace = firstBuffer.indexOf(" ", secondSpace + 1);
-                                    String fileSize = firstBuffer.substring(secondSpace+1, thirdSpace);
+                                    String fileSize = firstBuffer.substring(secondSpace+1);
                                     System.out.println("STORE " + fileName + " " + fileSize);
                                     index.put(fileName, "store in progress");
                                 }
+
+                                if (command.equals("LOAD")) {
+                                    String fileName = firstBuffer.substring(firstSpace+1);
+                                    System.out.println("LOAD " + fileName);
+//                                  Controller selects one the R Dstores that stores that file, let port be its endpoint
+                                    ps.println("LOAD_FROM 1234 1234");
+                                }
+                                if (command.equals("REMOVE")) {
+                                    String fileName = firstBuffer.substring(firstSpace+1);
+                                    index.put(fileName, "remove in progerss");
+                                    index.put(fileName, "remove complete");
+                                    ps.println("REMOVE_COMPLETE");
+                                }
                             }
                         }
-//                        ps.close();
-//                        in.close();
-//                        client.close();
 
                     } catch (Exception e) {}
                 } catch (Exception e) { System.out.println("error "+e); }
