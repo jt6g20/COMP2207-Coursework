@@ -38,35 +38,34 @@ public class Controller {
                             int buflen = in.read(buf);
                             String firstBuffer = new String(buf,0,buflen);
                             System.out.println("INPUT - " + firstBuffer);
+                            String[] clientArgs = firstBuffer.split(" ");
+                            String command = clientArgs[0];
+                            System.out.println(command);
 
-                            if (firstBuffer.startsWith("LIST")) {
+                            if (command.startsWith("LIST")) {
+                                //Have to use starts with? command is 6 characters long with LIST??
                                 String file_list = "LIST " + listToString(index.keySet());
                                 System.out.println(file_list);
                                 //Not sure why this line doesn't work?
 //                                ps.write(file_list.getBytes(StandardCharsets.UTF_8));
                                 ps.println(file_list);
                             } else {
-                                int firstSpace = firstBuffer.indexOf(" ");
-                                String command = firstBuffer.substring(0,firstSpace);
-                                System.out.println(command);
-
                                 if (command.equals("STORE")) {
-                                    int secondSpace = firstBuffer.indexOf(" ",firstSpace + 1);
-                                    String fileName = firstBuffer.substring(firstSpace+1, secondSpace);
-                                    String fileSize = firstBuffer.substring(secondSpace+1);
+                                    String fileName = clientArgs[1];
+                                    String fileSize = clientArgs[2];
                                     System.out.println("STORE " + fileName + " " + fileSize);
                                     index.put(fileName, "store in progress");
                                 }
 
                                 if (command.equals("LOAD")) {
-                                    String fileName = firstBuffer.substring(firstSpace+1);
+                                    String fileName = clientArgs[1];
                                     System.out.println("LOAD " + fileName);
 //                                  Controller selects one the R Dstores that stores that file, let port be its endpoint
                                     ps.println("LOAD_FROM 1234 1234");
                                 }
                                 if (command.equals("REMOVE")) {
-                                    String fileName = firstBuffer.substring(firstSpace+1);
-                                    index.put(fileName, "remove in progerss");
+                                    String fileName = clientArgs[1];
+                                    index.put(fileName, "remove in progress");
                                     index.put(fileName, "remove complete");
                                     ps.println("REMOVE_COMPLETE");
                                 }
