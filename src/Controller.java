@@ -29,14 +29,14 @@ public class Controller {
                     System.out.println("waiting for connection");
                     Socket client = socket.accept();
                     InputStream in = client.getInputStream();
-                    OutputStream out = client.getOutputStream();
-                    PrintStream ps = new PrintStream(out);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                    PrintWriter pw = new PrintWriter(client.getOutputStream(), true);
                     try {
                         System.out.println("connected");
                         for (;;) {
                             byte[] buf = new byte[1000];
-                            int buflen = in.read(buf);
-                            String firstBuffer = new String(buf,0,buflen);
+//                            int buflen = in.read(buf);
+                            String firstBuffer = br.readLine();
                             System.out.println("INPUT - " + firstBuffer);
                             String[] clientArgs = firstBuffer.split(" ");
                             String command = clientArgs[0];
@@ -47,8 +47,8 @@ public class Controller {
                                 String file_list = "LIST " + listToString(index.keySet());
                                 System.out.println(file_list);
                                 //Not sure why this line doesn't work?
-//                                ps.write(file_list.getBytes(StandardCharsets.UTF_8));
-                                ps.println(file_list);
+//                                pw.write(file_list.getBytes(StandardCharsets.UTF_8));
+                                pw.println(file_list);
                             } else {
                                 if (command.equals("STORE")) {
                                     String fileName = clientArgs[1];
@@ -61,18 +61,18 @@ public class Controller {
                                     String fileName = clientArgs[1];
                                     System.out.println("LOAD " + fileName);
 //                                  Controller selects one the R Dstores that stores that file, let port be its endpoint
-                                    ps.println("LOAD_FROM 1234 1234");
+                                    pw.println("LOAD_FROM 1234 1234");
                                 }
                                 if (command.equals("REMOVE")) {
                                     String fileName = clientArgs[1];
                                     index.put(fileName, "remove in progress");
                                     index.put(fileName, "remove complete");
-                                    ps.println("REMOVE_COMPLETE");
+                                    pw.println("REMOVE_COMPLETE");
                                 }
                             }
                         }
 
-                    } catch (Exception e) {}
+                    } catch (Exception e) { System.out.println("error " + e); }
                 } catch (Exception e) { System.out.println("error "+e); }
             }
         } catch (Exception e) { System.out.println("error "+e); }
