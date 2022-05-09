@@ -48,6 +48,7 @@ public class Controller {
                                     if (command.equals("DSTORE")) {
                                         System.out.println("Dstore port added: " + client.getPort());
                                         dstores.add(client.getPort());
+                                        System.out.println("Dstores connected - " + dstores);
                                     }
 
                                     if (command.startsWith("LIST")) {
