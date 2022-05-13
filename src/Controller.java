@@ -14,31 +14,34 @@ public class Controller {
         //How long to wait (in seconds) to start the next rebalance operation
         String rebalPeriod = args[3];
 
+//        final InputStream[] clientIn = new InputStream[1];
+//        final OutputStream[] clientOut = new OutputStream[1];
+
         System.out.println(cport + " " + rFactor + " " + timeout + " " + rebalPeriod);
 
         Map<String, String> index = new HashMap<>();
         Set<Integer> dstores = new HashSet<>();
+        Map<String, Integer> fileAcks = new HashMap<>();
 
         index.put("oogabooa.txt", "store complete");
         index.put("weewoo.txt", "store complete");
         index.put("fangfong.txt", "store complete");
 
         try {
-            ServerSocket socket = new ServerSocket(cport);
+            ServerSocket serverSocket = new ServerSocket(cport);
             for (;;) {
                 try {
                     System.out.println("waiting for connection");
-                    Socket client = socket.accept();
-                    InputStream in = client.getInputStream();
+                    Socket socket = serverSocket.accept();
+                    InputStream in = socket.getInputStream();
+                    OutputStream out = socket.getOutputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                    PrintWriter pw = new PrintWriter(client.getOutputStream(), true);
+                    PrintWriter pw = new PrintWriter(out, true);
                     new Thread(new Runnable(){
                         public void run() {
                             try {
                                 System.out.println("connected");
                                 for (;;) {
-                                    byte[] buf = new byte[1000];
-//                                  int buflen = in.read(buf);
                                     String firstBuffer = br.readLine();
                                     if (firstBuffer == null) continue;
                                     System.out.println("INPUT - " + firstBuffer);
@@ -46,8 +49,9 @@ public class Controller {
                                     String command = clientArgs[0];
 
                                     if (command.equals("DSTORE")) {
-                                        System.out.println("Dstore port added: " + client.getPort());
-                                        dstores.add(client.getPort());
+                                        int port = Integer.parseInt(clientArgs[2]);
+                                        System.out.println("Dstore port added: " + port);
+                                        dstores.add(port);
                                         System.out.println("Dstores connected - " + dstores);
                                     }
 
@@ -55,8 +59,6 @@ public class Controller {
                                         //Have to use starts with? command is 6 characters long with LIST??
                                         String file_list = "LIST " + listToString(index.keySet());
                                         System.out.println(file_list);
-                                        //Not sure why this line doesn't work?
-//                                pw.write(file_list.getBytes(StandardCharsets.UTF_8));
                                         pw.println(file_list);
                                         //TODO failure handling
                                     } else {
@@ -67,7 +69,30 @@ public class Controller {
                                             index.put(fileName, "store in progress");
                                             System.out.println("STORE_TO " + listToString(dstores));
                                             pw.println("STORE_TO " + listToString(dstores));
+
+                                            synchronized (fileAcks) {
+                                                fileAcks.wait();
+                                                index.put(fileName, "store complete");
+                                                System.out.println(fileName + " store complete");
+                                                pw.println("STORE_COMPLETE");
+                                                fileAcks.remove(fileName);
+                                            }
+
                                             //TODO failure handling
+                                        }
+                                        if (command.startsWith("STORE_ACK")) {
+                                            String fileName = clientArgs[1];
+                                            if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
+                                            else fileAcks.put(fileName, 1);
+
+                                            System.out.println(fileAcks);
+
+                                            if (fileAcks.get(fileName) == dstores.size()) {
+                                                System.out.println("notify()");
+                                                synchronized (fileAcks) {
+                                                    fileAcks.notify();
+                                                }
+                                            }
                                         }
 
                                         if (command.equals("LOAD")) {
