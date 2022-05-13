@@ -54,64 +54,58 @@ public class Controller {
                                         System.out.println("Dstores connected - " + dstores);
                                     }
 
-                                    if (command.startsWith("LIST")) {
+                                    if (command.equals("STORE")) {
+                                        String fileName = clientArgs[1];
+                                        String fileSize = clientArgs[2];
+                                        System.out.println("STORE " + fileName + " " + fileSize);
+                                        index.put(fileName, "store in progress");
+                                        System.out.println("STORE_TO " + listToString(dstores));
+                                        pw.println("STORE_TO " + listToString(dstores));
+
+                                        synchronized (fileAcks) {
+                                            fileAcks.wait();
+                                            index.put(fileName, "store complete");
+                                            System.out.println(fileName + " store complete");
+                                            pw.println("STORE_COMPLETE");
+                                            fileAcks.remove(fileName);
+                                        }
+                                        //TODO failure handling
+                                    } else if (command.startsWith("STORE_ACK")) {
+                                        String fileName = clientArgs[1];
+                                        if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
+                                        else fileAcks.put(fileName, 1);
+
+                                        System.out.println(fileAcks);
+
+                                        if (fileAcks.get(fileName) == dstores.size()) {
+                                            System.out.println("notify()");
+                                            synchronized (fileAcks) {
+                                                fileAcks.notify();
+                                            }
+                                        }
+
+                                    } else if (command.equals("LOAD")) {
+                                        String fileName = clientArgs[1];
+                                        System.out.println("LOAD " + fileName);
+                                        //Controller selects one of the R Dstores that stores that file, let port be its endpoint
+                                        pw.println("LOAD_FROM 1234 1234");
+                                        //TODO failure handling
+                                    } else if (command.equals("REMOVE")) {
+                                        String fileName = clientArgs[1];
+                                        index.put(fileName, "remove in progress");
+                                        index.put(fileName, "remove complete");
+                                        pw.println("REMOVE_COMPLETE");
+                                        //TODO failure handling
+                                    } else if (command.startsWith("LIST")) {
                                         //Have to use starts with? command is 6 characters long with LIST??
                                         String file_list = "LIST " + listToString(index.keySet());
                                         System.out.println(file_list);
                                         pw.println(file_list);
                                         //TODO failure handling
-                                    } else {
-                                        if (command.equals("STORE")) {
-                                            String fileName = clientArgs[1];
-                                            String fileSize = clientArgs[2];
-                                            System.out.println("STORE " + fileName + " " + fileSize);
-                                            index.put(fileName, "store in progress");
-                                            System.out.println("STORE_TO " + listToString(dstores));
-                                            pw.println("STORE_TO " + listToString(dstores));
-
-                                            synchronized (fileAcks) {
-                                                fileAcks.wait();
-                                                index.put(fileName, "store complete");
-                                                System.out.println(fileName + " store complete");
-                                                pw.println("STORE_COMPLETE");
-                                                fileAcks.remove(fileName);
-                                            }
-
-                                            //TODO failure handling
-                                        }
-                                        if (command.startsWith("STORE_ACK")) {
-                                            String fileName = clientArgs[1];
-                                            if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
-                                            else fileAcks.put(fileName, 1);
-
-                                            System.out.println(fileAcks);
-
-                                            if (fileAcks.get(fileName) == dstores.size()) {
-                                                System.out.println("notify()");
-                                                synchronized (fileAcks) {
-                                                    fileAcks.notify();
-                                                }
-                                            }
-                                        }
-
-                                        if (command.equals("LOAD")) {
-                                            String fileName = clientArgs[1];
-                                            System.out.println("LOAD " + fileName);
-//                                  Controller selects one the R Dstores that stores that file, let port be its endpoint
-                                            pw.println("LOAD_FROM 1234 1234");
-                                            //TODO failure handling
-                                        }
-                                        if (command.equals("REMOVE")) {
-                                            String fileName = clientArgs[1];
-                                            index.put(fileName, "remove in progress");
-                                            index.put(fileName, "remove complete");
-                                            pw.println("REMOVE_COMPLETE");
-                                            //TODO failure handling
-                                        }
                                     }
                                 }
                             } catch (Exception e) {
-//                                System.out.println("error " + e);
+                                //System.out.println("error " + e);
                                 System.out.println("Something disconnected on port " + port);
                                 dstores.remove(port);
                                 System.out.println("If that was a dstore it has been removed");
