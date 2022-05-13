@@ -14,9 +14,6 @@ public class Controller {
         //How long to wait (in seconds) to start the next rebalance operation
         String rebalPeriod = args[3];
 
-//        final InputStream[] clientIn = new InputStream[1];
-//        final OutputStream[] clientOut = new OutputStream[1];
-
         System.out.println(cport + " " + rFactor + " " + timeout + " " + rebalPeriod);
 
         Map<String, String> index = new HashMap<>();
@@ -37,8 +34,10 @@ public class Controller {
                     OutputStream out = socket.getOutputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(in));
                     PrintWriter pw = new PrintWriter(out, true);
+
                     new Thread(new Runnable(){
                         public void run() {
+                            int port = 0;
                             try {
                                 System.out.println("connected");
                                 for (;;) {
@@ -49,7 +48,7 @@ public class Controller {
                                     String command = clientArgs[0];
 
                                     if (command.equals("DSTORE")) {
-                                        int port = Integer.parseInt(clientArgs[2]);
+                                        port = Integer.parseInt(clientArgs[2]);
                                         System.out.println("Dstore port added: " + port);
                                         dstores.add(port);
                                         System.out.println("Dstores connected - " + dstores);
@@ -112,7 +111,11 @@ public class Controller {
                                     }
                                 }
                             } catch (Exception e) {
-                                System.out.println("error " + e);
+//                                System.out.println("error " + e);
+                                System.out.println("Something disconnected on port " + port);
+                                dstores.remove(port);
+                                System.out.println("If that was a dstore it has been removed");
+                                System.out.println(dstores);
                             }
                         }
                     }).start();

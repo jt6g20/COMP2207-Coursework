@@ -18,14 +18,15 @@ public class Dstore {
             ServerSocket socket = new ServerSocket(port);
             //For communicating with the controller
             Socket controller = new Socket("Desktop", cport);
+            //TODO gotta change this from "Destkop" to something general
             for(;;) {
                 try {
                     PrintWriter pw = new PrintWriter(controller.getOutputStream(), true);
                     pw.println("DSTORE connected " + port);
-                    System.out.println("waiting for connection");
 
+                    System.out.println("waiting for connection");
                     Socket client = socket.accept();
-                    System.out.println("Client connected");
+                    System.out.println("client connected");
                     InputStream in = client.getInputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(in));
                     PrintWriter clientPw = new PrintWriter(client.getOutputStream(), true);
@@ -33,8 +34,6 @@ public class Dstore {
                     new Thread(new Runnable() {
                         public void run() {
                             try {
-                                byte[] buf = new byte[1000];
-                                int buflen;
                                 for (;;) {
                                     String firstBuffer = br.readLine();
                                     if (firstBuffer == null) continue;
@@ -53,6 +52,7 @@ public class Dstore {
                                         File outputFile = new File(fileName);
                                         FileOutputStream out = new FileOutputStream(outputFile);
                                         out.write(in.readNBytes(fileSize));
+                                        out.close();
 
                                         pw.println("STORE_ACK " + fileName);
                                     }
