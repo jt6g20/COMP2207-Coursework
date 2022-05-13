@@ -102,6 +102,8 @@ public class Controller {
                                         System.out.println(file_list);
                                         pw.println(file_list);
                                         //TODO failure handling
+                                    } else {
+                                        System.out.println("malformed message received");
                                     }
                                 }
                             } catch (Exception e) {
