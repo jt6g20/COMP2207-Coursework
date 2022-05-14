@@ -17,8 +17,8 @@ public class Dstore {
             //For listening for a client
             ServerSocket socket = new ServerSocket(port);
             //For communicating with the controller
-            Socket controller = new Socket("Desktop", cport);
-            //TODO gotta change this from "Destkop" to something general
+            String host = InetAddress.getLocalHost().getHostAddress();
+            Socket controller = new Socket(host, cport);
             for(;;) {
                 try {
                     PrintWriter pw = new PrintWriter(controller.getOutputStream(), true);
