@@ -57,6 +57,12 @@ public class Controller {
                                     else if (command.equals("STORE")) {
                                         String fileName = clientArgs[1];
                                         String fileSize = clientArgs[2];
+
+                                        if (index.containsKey(fileName)) {
+                                            pw.println("ERROR_FILE_ALREADY_EXISTS");
+                                            continue;
+                                        }
+
                                         System.out.println("STORE " + fileName + " " + fileSize);
                                         index.put(fileName, "store in progress");
                                         System.out.println("STORE_TO " + listToString(dstores));
