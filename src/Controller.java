@@ -54,7 +54,7 @@ public class Controller {
                                         System.out.println("Dstores connected - " + dstores);
                                     }
 
-                                    if (command.equals("STORE")) {
+                                    else if (command.equals("STORE")) {
                                         String fileName = clientArgs[1];
                                         String fileSize = clientArgs[2];
                                         System.out.println("STORE " + fileName + " " + fileSize);
@@ -64,6 +64,10 @@ public class Controller {
 
                                         synchronized (fileAcks) {
                                             fileAcks.wait();
+                                            while (fileAcks.get(fileName) < dstores.size()) {
+                                                fileAcks.notify();
+                                                fileAcks.wait();
+                                            }
                                             index.put(fileName, "store complete");
                                             System.out.println(fileName + " store complete");
                                             pw.println("STORE_COMPLETE");
@@ -103,7 +107,7 @@ public class Controller {
                                         pw.println(file_list);
                                         //TODO failure handling
                                     } else {
-                                        System.out.println("malformed message received");
+                                        System.out.println("malformed message received: " + firstBuffer);
                                     }
                                 }
                             } catch (Exception e) {
