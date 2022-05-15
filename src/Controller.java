@@ -41,6 +41,7 @@ public class Controller {
                     new Thread(new Runnable(){
                         public void run() {
                             int port = 0;
+                            int dstoreIndex = 0;
                             try {
                                 System.out.println("connected");
                                 for (;;) {
@@ -105,15 +106,32 @@ public class Controller {
                                             return;
                                         }
 
-                                        //Controller selects one of the R Dstores that stores that file, let port be its endpoint
+                                        dstoreIndex = 0;
                                         String fileSize = index.get(fileName)[1];
                                         for (int dstore : dstores) {
                                             pw.println("LOAD_FROM " + dstore + " " + fileSize);
                                             break;
                                         }
                                         //TODO failure handling
+                                    } else if (command.equals("RELOAD")) {
+                                        String fileName = clientArgs[1];
+                                        dstoreIndex++;
+                                        if (dstoreIndex - 1 >= dstores.size()) {
+                                            pw.println("ERROR_LOAD");
+                                        } else {
+                                            String fileSize = index.get(fileName)[1];
+                                            int elemIndex = 0;
+                                            for (int dstore : dstores) {
+                                                if (elemIndex == dstoreIndex) {
+                                                    pw.println("LOAD_FROM " + dstore + " " + fileSize);
+                                                    break;
+                                                }
+                                                elemIndex++;
+                                            }
+                                        }
+                                    }
 
-                                    } else if (command.equals("REMOVE")) {
+                                    else if (command.equals("REMOVE")) {
                                         String fileName = clientArgs[1];
                                         String fileSize = index.get(fileName)[1];
                                         index.put(fileName, new String[]{"remove in progress", fileSize});
