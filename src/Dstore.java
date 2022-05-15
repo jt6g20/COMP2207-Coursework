@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Dstore {
@@ -12,6 +14,11 @@ public class Dstore {
         String timeout = args[2];
         //Where to store the data locally
         String fileFolder = args[3];
+
+
+        for (File file : Paths.get("").toAbsolutePath().toFile().listFiles()) {
+            if (!file.getName().endsWith(".class")) file.delete();
+        }
 
         try {
             //For listening for a client
