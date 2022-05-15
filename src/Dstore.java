@@ -38,6 +38,7 @@ public class Dstore {
                     new Thread(new Runnable() {
                         public void run() {
                             try {
+                                OutputStream out = client.getOutputStream();
                                 InputStream in = client.getInputStream();
                                 BufferedReader br = new BufferedReader(new InputStreamReader(in));
                                 PrintWriter clientPw = new PrintWriter(client.getOutputStream(), true);
@@ -56,11 +57,16 @@ public class Dstore {
                                     clientPw.println("ACK");
 
                                     File outputFile = new File(fileName);
-                                    FileOutputStream out = new FileOutputStream(outputFile);
-                                    out.write(in.readNBytes(fileSize));
-                                    out.close();
+                                    FileOutputStream outFile = new FileOutputStream(outputFile);
+                                    outFile.write(in.readNBytes(fileSize));
+                                    outFile.close();
 
                                     pw.println("STORE_ACK " + fileName);
+                                } else if (command.startsWith("LOAD_DATA")) {
+                                    String fileName = clientArgs[1];
+                                    File inputFile = new File(fileName);
+                                    FileInputStream inf = new FileInputStream(inputFile);
+                                    out.write(inf.readAllBytes());
                                 }
 
                                 client.close();
