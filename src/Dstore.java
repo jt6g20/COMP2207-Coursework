@@ -27,37 +27,38 @@ public class Dstore {
                     System.out.println("waiting for connection");
                     Socket client = socket.accept();
                     System.out.println("client connected");
-                    InputStream in = client.getInputStream();
-                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                    PrintWriter clientPw = new PrintWriter(client.getOutputStream(), true);
 
                     new Thread(new Runnable() {
                         public void run() {
                             try {
-                                for (;;) {
-                                    String firstBuffer = br.readLine();
-                                    if (firstBuffer == null) continue;
-                                    System.out.println("INPUT - " + firstBuffer);
-                                    String[] clientArgs = firstBuffer.split(" ");
-                                    String command = clientArgs[0];
+                                InputStream in = client.getInputStream();
+                                BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                                PrintWriter clientPw = new PrintWriter(client.getOutputStream(), true);
 
-                                    if (command.startsWith("STORE")) {
-                                        String fileName = clientArgs[1];
-                                        int fileSize = Integer.parseInt(clientArgs[2]);
-                                        //TODO error handling of parseInt
-                                        System.out.println("STORE " + fileName + " " + fileSize);
+                                String firstBuffer = br.readLine();
+                                System.out.println("INPUT - " + firstBuffer);
+                                String[] clientArgs = firstBuffer.split(" ");
+                                String command = clientArgs[0];
 
-                                        clientPw.println("ACK");
+                                if (command.startsWith("STORE")) {
+                                    String fileName = clientArgs[1];
+                                    int fileSize = Integer.parseInt(clientArgs[2]);
+                                    //TODO error handling of parseInt
+                                    System.out.println("STORE " + fileName + " " + fileSize);
 
-                                        File outputFile = new File(fileName);
-                                        FileOutputStream out = new FileOutputStream(outputFile);
-                                        out.write(in.readNBytes(fileSize));
-                                        out.close();
+                                    clientPw.println("ACK");
 
-                                        pw.println("STORE_ACK " + fileName);
-                                    }
+                                    File outputFile = new File(fileName);
+                                    FileOutputStream out = new FileOutputStream(outputFile);
+                                    out.write(in.readNBytes(fileSize));
+                                    out.close();
+
+                                    pw.println("STORE_ACK " + fileName);
                                 }
-                            } catch (Exception e) {}
+
+                                client.close();
+
+                            } catch (Exception e) { System.out.println("error "+e); }
                         }
                     }).start();
 
