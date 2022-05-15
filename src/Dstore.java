@@ -65,8 +65,10 @@ public class Dstore {
                                 } else if (command.startsWith("LOAD_DATA")) {
                                     String fileName = clientArgs[1];
                                     File inputFile = new File(fileName);
-                                    FileInputStream inf = new FileInputStream(inputFile);
-                                    out.write(inf.readAllBytes());
+                                    if (inputFile.exists()) {
+                                        FileInputStream inf = new FileInputStream(inputFile);
+                                        out.write(inf.readAllBytes());
+                                    }
                                 }
 
                                 client.close();
