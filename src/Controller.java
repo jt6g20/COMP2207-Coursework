@@ -41,10 +41,9 @@ public class Controller {
                             try {
                                 System.out.println("connected");
                                 for (;;) {
-                                    String firstBuffer = br.readLine();
-                                    if (firstBuffer == null) continue;
-                                    System.out.println("INPUT - " + firstBuffer);
-                                    String[] clientArgs = firstBuffer.split(" ");
+                                    String line = br.readLine();
+                                    System.out.println("INPUT - " + line);
+                                    String[] clientArgs = line.split(" ");
                                     String command = clientArgs[0];
 
                                     if (command.equals("DSTORE")) {
@@ -113,7 +112,7 @@ public class Controller {
                                         pw.println(file_list);
                                         //TODO failure handling
                                     } else {
-                                        System.out.println("malformed message received: " + firstBuffer);
+                                        System.out.println("malformed message received: " + line);
                                     }
                                 }
                             } catch (Exception e) {
