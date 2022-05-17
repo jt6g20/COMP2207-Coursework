@@ -16,7 +16,8 @@ public class Dstore {
         String fileFolder = args[3];
 
 
-        for (File file : Paths.get("").toAbsolutePath().toFile().listFiles()) {
+        File folder = new File(fileFolder);
+        for (File file : folder.listFiles()) {
             if (!file.getName().endsWith(".class")) file.delete();
         }
 
@@ -56,7 +57,7 @@ public class Dstore {
 
                                     clientPw.println("ACK");
 
-                                    File outputFile = new File(fileName);
+                                    File outputFile = new File(fileFolder + "/" + fileName);
                                     FileOutputStream outFile = new FileOutputStream(outputFile);
                                     outFile.write(in.readNBytes(fileSize));
                                     outFile.close();
@@ -64,15 +65,18 @@ public class Dstore {
                                     pw.println("STORE_ACK " + fileName);
                                 } else if (command.startsWith("LOAD_DATA")) {
                                     String fileName = clientArgs[1];
-                                    File inputFile = new File(fileName);
+                                    File inputFile = new File(fileFolder + "/" + fileName);
                                     if (inputFile.exists()) {
                                         FileInputStream inf = new FileInputStream(inputFile);
                                         out.write(inf.readAllBytes());
                                     }
                                 } else if (command.startsWith("REMOVE")) {
                                     String fileName = clientArgs[1];
-                                    File file = new File(fileName);
-                                    if (file.exists()) file.delete();
+                                    File file = new File(fileFolder + "/" + fileName);
+                                    if (file.exists()) {
+                                        file.delete();
+                                        System.out.println(fileName + " was deleted");
+                                    }
                                     pw.println("REMOVE_ACK " + fileName);
                                 }
 
