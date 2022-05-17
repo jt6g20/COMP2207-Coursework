@@ -61,13 +61,16 @@ public class Controller {
                                         String fileName = clientArgs[1];
                                         String fileSize = clientArgs[2];
 
-                                        if (index.containsKey(fileName)) {
-                                            pw.println("ERROR_FILE_ALREADY_EXISTS");
-                                            continue;
+                                        synchronized (index) {
+                                            if (!index.containsKey(fileName) || index.get(fileName).equals("remove complete"));
+                                            else {
+                                                pw.println("ERROR_FILE_ALREADY_EXISTS");
+                                                continue;
+                                            }
+                                            System.out.println("STORE " + fileName + " " + fileSize);
+                                            index.put(fileName, new String[]{"store in progress", fileSize});
                                         }
 
-                                        System.out.println("STORE " + fileName + " " + fileSize);
-                                        index.put(fileName, new String[]{"store in progress", fileSize});
                                         System.out.println("STORE_TO " + listToString(dstores));
                                         pw.println("STORE_TO " + listToString(dstores));
 
@@ -99,15 +102,21 @@ public class Controller {
 
                                     } else if (command.equals("LOAD")) {
                                         String fileName = clientArgs[1];
+                                        String fileSize;
                                         System.out.println("LOAD " + fileName);
 
-                                        if (!index.containsKey(fileName)) {
-                                            pw.println("ERROR_FILE_DOES_NOT_EXIST");
-                                            return;
+                                        synchronized (index) {
+                                            if (!index.containsKey(fileName)
+                                                    || index.get(fileName).equals("store in progress")
+                                                    || index.get(fileName).equals("remove in progress")) {
+                                                pw.println("ERROR_FILE_DOES_NOT_EXIST");
+                                                continue;
+                                            }
+                                            fileSize = index.get(fileName)[1];
                                         }
 
+
                                         dstoreIndex = 0;
-                                        String fileSize = index.get(fileName)[1];
                                         for (int dstore : dstores) {
                                             pw.println("LOAD_FROM " + dstore + " " + fileSize);
                                             break;
@@ -134,7 +143,18 @@ public class Controller {
                                     else if (command.equals("REMOVE")) {
                                         String fileName = clientArgs[1];
                                         String fileSize = index.get(fileName)[1];
-                                        index.put(fileName, new String[]{"remove in progress", fileSize});
+
+                                        synchronized (index) {
+                                            if (!index.containsKey(fileName)
+                                                    || index.get(fileName).equals("remove complete")
+                                                    || index.get(fileName).equals("remove in progress")
+                                                    || index.get(fileName).equals("store in progress")) {
+                                                pw.println("ERROR_FILE_DOES_NOT_EXIST");
+                                                continue;
+                                            }
+                                            index.put(fileName, new String[]{"remove in progress", fileSize});
+                                        }
+
                                         String host = InetAddress.getLocalHost().getHostAddress();
                                         for (int dstore : dstores) {
                                             try {
@@ -172,7 +192,6 @@ public class Controller {
                                         System.out.println(fileAcks);
 
                                         if (fileAcks.get(fileName) == dstores.size()) {
-                                            System.out.println("notify()");
                                             synchronized (fileAcks) {
                                                 fileAcks.notify();
                                             }
@@ -181,7 +200,17 @@ public class Controller {
 
                                     else if (command.startsWith("LIST")) {
                                         //Have to use starts with? command is 6 characters long with LIST??
-                                        String file_list = "LIST " + listToString(index.keySet());
+                                        StringBuilder sb = new StringBuilder("");
+                                        synchronized (index) {
+                                            for (var s : index.keySet()) {
+                                                if (!(index.get(s).equals("store in progress") || index.get(s).equals("remove in progress"))) {
+                                                    sb.append(" ").append(s);
+                                                }
+                                            }
+                                            sb.deleteCharAt(0);
+                                        }
+
+                                        String file_list = "LIST " + sb;
                                         System.out.println(file_list);
                                         pw.println(file_list);
                                         //TODO failure handling
