@@ -69,6 +69,11 @@ public class Dstore {
                                         FileInputStream inf = new FileInputStream(inputFile);
                                         out.write(inf.readAllBytes());
                                     }
+                                } else if (command.startsWith("REMOVE")) {
+                                    String fileName = clientArgs[1];
+                                    File file = new File(fileName);
+                                    if (file.exists()) file.delete();
+                                    pw.println("REMOVE_ACK " + fileName);
                                 }
 
                                 client.close();
