@@ -135,10 +135,51 @@ public class Controller {
                                         String fileName = clientArgs[1];
                                         String fileSize = index.get(fileName)[1];
                                         index.put(fileName, new String[]{"remove in progress", fileSize});
-                                        index.put(fileName, new String[]{"remove complete", fileSize});
-                                        pw.println("REMOVE_COMPLETE");
+                                        String host = InetAddress.getLocalHost().getHostAddress();
+                                        for (int dstore : dstores) {
+                                            try {
+                                                Socket dstoreSocket = new Socket(host, dstore);
+                                                new Thread(new Runnable() {
+                                                    public void run() {
+                                                        try {
+                                                            PrintWriter dstorePw = new PrintWriter(dstoreSocket.getOutputStream(), true);
+                                                            dstorePw.println("REMOVE " + fileName);
+                                                            dstoreSocket.close();
+                                                        } catch (Exception e) { System.out.println("error "+e); }
+                                                    }
+                                                }).start();
+                                            } catch (Exception e) { System.out.println("error "+e); }
+                                        }
+
+                                        synchronized (fileAcks) {
+                                            fileAcks.wait();
+                                            while (fileAcks.get(fileName) < dstores.size()) {
+                                                fileAcks.notify();
+                                                fileAcks.wait();
+                                            }
+                                            index.put(fileName, new String[]{"remove complete", fileSize});
+                                            System.out.println(fileName + " remove complete");
+                                            pw.println("REMOVE_COMPLETE");
+                                            fileAcks.remove(fileName);
+                                        }
                                         //TODO failure handling
-                                    } else if (command.startsWith("LIST")) {
+
+                                    } else if (command.equals("REMOVE_ACK")) {
+                                        String fileName = clientArgs[1];
+                                        if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
+                                        else fileAcks.put(fileName, 1);
+
+                                        System.out.println(fileAcks);
+
+                                        if (fileAcks.get(fileName) == dstores.size()) {
+                                            System.out.println("notify()");
+                                            synchronized (fileAcks) {
+                                                fileAcks.notify();
+                                            }
+                                        }
+                                    }
+
+                                    else if (command.startsWith("LIST")) {
                                         //Have to use starts with? command is 6 characters long with LIST??
                                         String file_list = "LIST " + listToString(index.keySet());
                                         System.out.println(file_list);
