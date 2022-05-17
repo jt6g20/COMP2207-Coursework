@@ -62,7 +62,9 @@ public class Controller {
                                         String fileSize = clientArgs[2];
 
                                         synchronized (index) {
-                                            if (!index.containsKey(fileName) || index.get(fileName).equals("remove complete"));
+                                            if (!index.containsKey(fileName) || index.get(fileName)[0].equals("remove complete")) {
+
+                                            }
                                             else {
                                                 pw.println("ERROR_FILE_ALREADY_EXISTS");
                                                 continue;
@@ -84,6 +86,7 @@ public class Controller {
                                             System.out.println(fileName + " store complete");
                                             pw.println("STORE_COMPLETE");
                                             fileAcks.remove(fileName);
+                                            System.out.println(hashmapToString(index));
                                         }
                                         //TODO failure handling
                                     } else if (command.startsWith("STORE_ACK")) {
@@ -107,8 +110,8 @@ public class Controller {
 
                                         synchronized (index) {
                                             if (!index.containsKey(fileName)
-                                                    || index.get(fileName).equals("store in progress")
-                                                    || index.get(fileName).equals("remove in progress")) {
+                                                    || index.get(fileName)[0].equals("store in progress")
+                                                    || index.get(fileName)[0].equals("remove in progress")) {
                                                 pw.println("ERROR_FILE_DOES_NOT_EXIST");
                                                 continue;
                                             }
@@ -125,7 +128,7 @@ public class Controller {
                                     } else if (command.equals("RELOAD")) {
                                         String fileName = clientArgs[1];
                                         dstoreIndex++;
-                                        if (dstoreIndex - 1 >= dstores.size()) {
+                                        if (dstoreIndex > dstores.size() - 1) {
                                             pw.println("ERROR_LOAD");
                                         } else {
                                             String fileSize = index.get(fileName)[1];
@@ -146,9 +149,9 @@ public class Controller {
 
                                         synchronized (index) {
                                             if (!index.containsKey(fileName)
-                                                    || index.get(fileName).equals("remove complete")
-                                                    || index.get(fileName).equals("remove in progress")
-                                                    || index.get(fileName).equals("store in progress")) {
+                                                    || index.get(fileName)[0].equals("remove complete")
+                                                    || index.get(fileName)[0].equals("remove in progress")
+                                                    || index.get(fileName)[0].equals("store in progress")) {
                                                 pw.println("ERROR_FILE_DOES_NOT_EXIST");
                                                 continue;
                                             }
@@ -181,6 +184,7 @@ public class Controller {
                                             System.out.println(fileName + " remove complete");
                                             pw.println("REMOVE_COMPLETE");
                                             fileAcks.remove(fileName);
+                                            System.out.println(hashmapToString(index));
                                         }
                                         //TODO failure handling
 
@@ -193,6 +197,7 @@ public class Controller {
 
                                         if (fileAcks.get(fileName) == dstores.size()) {
                                             synchronized (fileAcks) {
+                                                System.out.println(fileName + " all deletion ACKS received");
                                                 fileAcks.notify();
                                             }
                                         }
@@ -203,7 +208,7 @@ public class Controller {
                                         StringBuilder sb = new StringBuilder("");
                                         synchronized (index) {
                                             for (var s : index.keySet()) {
-                                                if (!(index.get(s).equals("store in progress") || index.get(s).equals("remove in progress"))) {
+                                                if (!(index.get(s)[0].equals("store in progress") || index.get(s)[0].equals("remove in progress"))) {
                                                     sb.append(" ").append(s);
                                                 }
                                             }
@@ -237,6 +242,14 @@ public class Controller {
         StringBuilder sb = new StringBuilder("");
         for (var s : l) sb.append(" ").append(s);
         sb.deleteCharAt(0);
+        return sb.toString();
+    }
+
+    static String hashmapToString(Map<String, String[]> m) {
+        StringBuilder sb = new StringBuilder("");
+        for (String s : m.keySet()) {
+            sb.append(s).append(" ").append(m.get(s)[0]).append(" ");
+        }
         return sb.toString();
     }
 }
