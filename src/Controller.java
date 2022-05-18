@@ -62,9 +62,7 @@ public class Controller {
                                         String fileSize = clientArgs[2];
 
                                         synchronized (index) {
-                                            if (!index.containsKey(fileName) || index.get(fileName)[0].equals("remove complete")) {
-
-                                            }
+                                            if (!index.containsKey(fileName) || index.get(fileName)[0].equals("remove complete")) {}
                                             else {
                                                 pw.println("ERROR_FILE_ALREADY_EXISTS");
                                                 continue;
@@ -116,9 +114,8 @@ public class Controller {
                                         System.out.println("LOAD " + fileName);
 
                                         synchronized (index) {
-                                            if (!index.containsKey(fileName)
-                                                    || index.get(fileName)[0].equals("store in progress")
-                                                    || index.get(fileName)[0].equals("remove in progress")) {
+                                            if (index.containsKey(fileName) && index.get(fileName)[0].equals("store complete")) {}
+                                            else {
                                                 pw.println("ERROR_FILE_DOES_NOT_EXIST");
                                                 continue;
                                             }
