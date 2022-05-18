@@ -62,6 +62,7 @@ public class Dstore {
                                     outFile.write(in.readNBytes(fileSize));
                                     outFile.close();
 
+                                    System.out.println("STORE_ACK " + fileName);
                                     pw.println("STORE_ACK " + fileName);
                                 } else if (command.startsWith("LOAD_DATA")) {
                                     String fileName = clientArgs[1];
@@ -69,10 +70,12 @@ public class Dstore {
                                     if (inputFile.exists()) {
                                         FileInputStream inf = new FileInputStream(inputFile);
                                         out.write(inf.readAllBytes());
+                                        inf.close();
                                     }
                                 } else if (command.startsWith("REMOVE")) {
                                     String fileName = clientArgs[1];
                                     File file = new File(fileFolder + "/" + fileName);
+                                    System.out.println(Arrays.toString(new File(fileFolder).listFiles()));
                                     if (file.exists()) {
                                         file.delete();
                                         System.out.println(fileName + " was deleted");

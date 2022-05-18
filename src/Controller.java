@@ -77,16 +77,18 @@ public class Controller {
                                         pw.println("STORE_TO " + listToString(dstores));
 
                                         synchronized (fileAcks) {
+                                            System.out.println(fileName + " now waiting for acks");
                                             fileAcks.wait();
                                             while (fileAcks.get(fileName) < dstores.size()) {
-                                                fileAcks.notify();
+                                                System.out.println("thread woken but " + fileName + " only has " + fileAcks.get(fileName) + " acks and needs " + dstores.size());
                                                 fileAcks.wait();
                                             }
                                             index.put(fileName, new String[]{"store complete", fileSize});
-                                            System.out.println(fileName + " store complete");
+                                            System.out.println(fileName + " thread woken and store complete");
                                             pw.println("STORE_COMPLETE");
                                             fileAcks.remove(fileName);
                                             System.out.println(hashmapToString(index));
+                                            if (fileAcks.containsValue(dstores.size())) fileAcks.notify();
                                         }
                                         //TODO failure handling
                                     } else if (command.startsWith("STORE_ACK")) {
@@ -95,6 +97,7 @@ public class Controller {
                                             if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
                                             else fileAcks.put(fileName, 1);
 
+                                            System.out.println("store ack received for " + fileName);
                                             System.out.println(fileAcks);
 
                                             if (fileAcks.get(fileName) == dstores.size()) {
@@ -175,17 +178,19 @@ public class Controller {
                                             } catch (Exception e) { System.out.println("error "+e); }
                                         }
 
+                                        System.out.println("waiting for " + fileName + " acks");
                                         synchronized (fileAcks) {
                                             fileAcks.wait();
                                             while (fileAcks.get(fileName) < dstores.size()) {
-                                                fileAcks.notify();
+                                                System.out.println("thread woken but " + fileName + " only has " + fileAcks.get(fileName) + " acks and needs " + dstores.size());
                                                 fileAcks.wait();
                                             }
                                             index.put(fileName, new String[]{"remove complete", fileSize});
-                                            System.out.println(fileName + " remove complete");
+                                            System.out.println(fileName + " thread woken and remove complete");
                                             pw.println("REMOVE_COMPLETE");
                                             fileAcks.remove(fileName);
                                             System.out.println(hashmapToString(index));
+                                            if (fileAcks.containsValue(dstores.size())) fileAcks.notify();
                                         }
                                         //TODO failure handling
 
@@ -195,11 +200,12 @@ public class Controller {
                                             if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
                                             else fileAcks.put(fileName, 1);
 
+                                            System.out.println("remove ack received for " + fileName);
                                             System.out.println(fileAcks);
 
                                             if (fileAcks.get(fileName) == dstores.size()) {
-                                                    fileAcks.notify();
-                                                    System.out.println(fileName + " all deletion ACKS received");
+                                                fileAcks.notify();
+                                                System.out.println(fileName + " all deletion ACKS received");
                                             }
                                         }
                                     }
