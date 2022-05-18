@@ -88,7 +88,10 @@ public class Controller {
                                             pw.println("STORE_COMPLETE");
                                             fileAcks.remove(fileName);
                                             System.out.println(hashmapToString(index));
-                                            if (fileAcks.containsValue(dstores.size())) fileAcks.notify();
+                                            if (fileAcks.containsValue(dstores.size())) {
+                                                System.out.println("notify()");
+                                                fileAcks.notify();
+                                            }
                                         }
                                         //TODO failure handling
                                     } else if (command.startsWith("STORE_ACK")) {
@@ -190,7 +193,10 @@ public class Controller {
                                             pw.println("REMOVE_COMPLETE");
                                             fileAcks.remove(fileName);
                                             System.out.println(hashmapToString(index));
-                                            if (fileAcks.containsValue(dstores.size())) fileAcks.notify();
+                                            if (fileAcks.containsValue(dstores.size())) {
+                                                System.out.println("notify()");
+                                                fileAcks.notify();
+                                            }
                                         }
                                         //TODO failure handling
 
@@ -237,7 +243,6 @@ public class Controller {
                                 } else {
                                     System.out.println("Dstore disconnected on port " + port);
                                     dstores.remove(port);
-                                    System.out.println("If that was a dstore it has been removed");
                                     System.out.println(dstores);
                                 }
                             }
