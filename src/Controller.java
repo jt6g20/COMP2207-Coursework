@@ -62,8 +62,15 @@ public class Controller {
                                         }
 
                                         if (command.equals("STORE")) {
-                                            String fileName = clientArgs[1];
-                                            String fileSize = clientArgs[2];
+                                            String fileName;
+                                            String fileSize;
+                                            try {
+                                                fileName = clientArgs[1];
+                                                fileSize = clientArgs[2];
+                                            } catch (Exception e) {
+                                                System.out.println("Store message error "+e);
+                                                continue;
+                                            }
 
                                             synchronized (index) {
                                                 if (!index.containsKey(fileName) || index.get(fileName)[0].equals("remove complete")) {}
@@ -97,7 +104,14 @@ public class Controller {
                                             }
                                             //TODO failure handling
                                         } else if (command.startsWith("STORE_ACK")) {
-                                            String fileName = clientArgs[1];
+                                            String fileName;
+                                            try {
+                                                fileName = clientArgs[1];
+                                            } catch (Exception e) {
+                                                System.out.println("Store ack message error "+e);
+                                                continue;
+                                            }
+
                                             synchronized (fileAcks) {
                                                 if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
                                                 else fileAcks.put(fileName, 1);
@@ -113,28 +127,39 @@ public class Controller {
 
 
                                         } else if (command.equals("LOAD")) {
-                                            String fileName = clientArgs[1];
+                                            String fileName;
                                             String fileSize;
-                                            System.out.println("LOAD " + fileName);
+
+                                            try {
+                                                fileName = clientArgs[1];
+                                            } catch (Exception e) {
+                                                System.out.println("Load message error "+e);
+                                                continue;
+                                            }
 
                                             synchronized (index) {
-                                                if (index.containsKey(fileName) && index.get(fileName)[0].equals("store complete")) {}
-                                                else {
+                                                if (index.containsKey(fileName) && index.get(fileName)[0].equals("store complete")) {
+                                                } else {
                                                     pw.println("ERROR_FILE_DOES_NOT_EXIST");
                                                     continue;
                                                 }
                                                 fileSize = index.get(fileName)[1];
                                             }
 
-
                                             dstoreIndex = 0;
                                             for (int dstore : dstores) {
                                                 pw.println("LOAD_FROM " + dstore + " " + fileSize);
                                                 break;
                                             }
-                                            //TODO failure handling
                                         } else if (command.equals("RELOAD")) {
-                                            String fileName = clientArgs[1];
+                                            String fileName;
+                                            try {
+                                                fileName = clientArgs[1];
+                                            } catch (Exception e) {
+                                                System.out.println("Reload message error "+e);
+                                                continue;
+                                            }
+
                                             dstoreIndex++;
                                             if (dstoreIndex > dstores.size() - 1) {
                                                 pw.println("ERROR_LOAD");
@@ -152,7 +177,14 @@ public class Controller {
                                         }
 
                                         else if (command.equals("REMOVE")) {
-                                            String fileName = clientArgs[1];
+                                            String fileName;
+                                            try {
+                                                fileName = clientArgs[1];
+                                            } catch (Exception e) {
+                                                System.out.println("Remove message error "+e);
+                                                continue;
+                                            }
+
                                             String fileSize = index.get(fileName)[1];
 
                                             synchronized (index) {
@@ -199,10 +231,16 @@ public class Controller {
                                                     fileAcks.notify();
                                                 }
                                             }
-                                            //TODO failure handling
 
                                         } else if (command.equals("REMOVE_ACK")) {
-                                            String fileName = clientArgs[1];
+                                            String fileName;
+                                            try {
+                                                fileName = clientArgs[1];
+                                            } catch (Exception e) {
+                                                System.out.println("Remove ack message error "+e);
+                                                continue;
+                                            }
+
                                             synchronized (fileAcks) {
                                                 if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
                                                 else fileAcks.put(fileName, 1);
@@ -232,7 +270,6 @@ public class Controller {
                                             String file_list = "LIST " + sb;
                                             System.out.println(file_list);
                                             pw.println(file_list);
-                                            //TODO failure handling
                                         } else {
                                             System.out.println("malformed message received: " + line);
                                         }

@@ -52,7 +52,6 @@ public class Dstore {
                                 if (command.startsWith("STORE")) {
                                     String fileName = clientArgs[1];
                                     int fileSize = Integer.parseInt(clientArgs[2]);
-                                    //TODO error handling of parseInt
                                     System.out.println("STORE " + fileName + " " + fileSize);
 
                                     clientPw.println("ACK");
