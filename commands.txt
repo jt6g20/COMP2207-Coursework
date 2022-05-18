@@ -1,5 +1,5 @@
 javac Controller.java
-java Controller 4323 10 10 10
+java Controller 4323 5 10 10
 
 javac Dstore.java
 java Dstore 4324 4323 1000 dstore1
