@@ -79,8 +79,10 @@ public class Dstore {
                                     if (file.exists()) {
                                         file.delete();
                                         System.out.println(fileName + " was deleted");
+                                        pw.println("REMOVE_ACK " + fileName);
+                                    } else {
+                                        pw.println("ERROR_FILE_DOES_NOT_EXIST " + fileName);
                                     }
-                                    pw.println("REMOVE_ACK " + fileName);
                                 }
 
                                 client.close();

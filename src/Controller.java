@@ -13,7 +13,7 @@ public class Controller {
         //Replication factor
         int rFactor = Integer.parseInt(args[1]);
         //Timeout in milliseconds
-        String timeout = args[2];
+        int timeout = Integer.parseInt(args[2]);
         //How long to wait (in seconds) to start the next rebalance operation
         String rebalPeriod = args[3];
 
