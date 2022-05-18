@@ -40,7 +40,7 @@ public class Controller {
 
                     new Thread(new Runnable(){
                         public void run() {
-                            int port = 0;
+                            int port = -1;
                             int dstoreIndex = 0;
                             try {
                                 System.out.println("connected");
@@ -232,10 +232,14 @@ public class Controller {
                                 }
                             } catch (Exception e) {
                                 //System.out.println("error " + e);
-                                System.out.println("Something disconnected on port " + port);
-                                dstores.remove(port);
-                                System.out.println("If that was a dstore it has been removed");
-                                System.out.println(dstores);
+                                if (port == -1) {
+                                    System.out.println("Client disconnected");
+                                } else {
+                                    System.out.println("Dstore disconnected on port " + port);
+                                    dstores.remove(port);
+                                    System.out.println("If that was a dstore it has been removed");
+                                    System.out.println(dstores);
+                                }
                             }
                         }
                     }).start();
