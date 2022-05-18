@@ -91,17 +91,18 @@ public class Controller {
                                         //TODO failure handling
                                     } else if (command.startsWith("STORE_ACK")) {
                                         String fileName = clientArgs[1];
-                                        if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
-                                        else fileAcks.put(fileName, 1);
+                                        synchronized (fileAcks) {
+                                            if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
+                                            else fileAcks.put(fileName, 1);
 
-                                        System.out.println(fileAcks);
+                                            System.out.println(fileAcks);
 
-                                        if (fileAcks.get(fileName) == dstores.size()) {
-                                            System.out.println("notify()");
-                                            synchronized (fileAcks) {
+                                            if (fileAcks.get(fileName) == dstores.size()) {
                                                 fileAcks.notify();
+                                                System.out.println(fileName + " all store ACKS received");
                                             }
                                         }
+
 
                                     } else if (command.equals("LOAD")) {
                                         String fileName = clientArgs[1];
@@ -190,15 +191,15 @@ public class Controller {
 
                                     } else if (command.equals("REMOVE_ACK")) {
                                         String fileName = clientArgs[1];
-                                        if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
-                                        else fileAcks.put(fileName, 1);
+                                        synchronized (fileAcks) {
+                                            if (fileAcks.containsKey(fileName)) fileAcks.put(fileName, fileAcks.get(fileName) + 1);
+                                            else fileAcks.put(fileName, 1);
 
-                                        System.out.println(fileAcks);
+                                            System.out.println(fileAcks);
 
-                                        if (fileAcks.get(fileName) == dstores.size()) {
-                                            synchronized (fileAcks) {
-                                                System.out.println(fileName + " all deletion ACKS received");
-                                                fileAcks.notify();
+                                            if (fileAcks.get(fileName) == dstores.size()) {
+                                                    fileAcks.notify();
+                                                    System.out.println(fileName + " all deletion ACKS received");
                                             }
                                         }
                                     }
@@ -208,7 +209,7 @@ public class Controller {
                                         StringBuilder sb = new StringBuilder("");
                                         synchronized (index) {
                                             for (var s : index.keySet()) {
-                                                if (!(index.get(s)[0].equals("store in progress") || index.get(s)[0].equals("remove in progress"))) {
+                                                if (index.get(s)[0].equals("store complete")) {
                                                     sb.append(" ").append(s);
                                                 }
                                             }
