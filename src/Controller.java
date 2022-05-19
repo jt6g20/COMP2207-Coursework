@@ -23,10 +23,6 @@ public class Controller {
         Set<Integer> dstores = new HashSet<>();
         Map<String, Integer> fileAcks = new HashMap<>();
 
-//        index.put("oogabooa.txt", "store complete");
-//        index.put("weewoo.txt", "store complete");
-//        index.put("fangfong.txt", "store complete");
-
         try {
             ServerSocket serverSocket = new ServerSocket(cport);
             for (;;) {
@@ -92,11 +88,13 @@ public class Controller {
                                                     System.out.println("thread woken but " + fileName + " only has " + fileAcks.get(fileName) + " acks and needs " + dstores.size());
                                                     fileAcks.wait();
                                                 }
-                                                index.put(fileName, new String[]{"store complete", fileSize});
                                                 System.out.println(fileName + " thread woken and store complete");
                                                 pw.println("STORE_COMPLETE");
                                                 fileAcks.remove(fileName);
-                                                System.out.println(hashmapToString(index));
+                                                synchronized (index) {
+                                                    index.put(fileName, new String[]{"store complete", fileSize});
+                                                    System.out.println(hashmapToString(index));
+                                                }
                                                 if (fileAcks.containsValue(dstores.size())) {
                                                     System.out.println("notify()");
                                                     fileAcks.notify();
@@ -178,6 +176,7 @@ public class Controller {
 
                                         else if (command.equals("REMOVE")) {
                                             String fileName;
+                                            String fileSize;
                                             try {
                                                 fileName = clientArgs[1];
                                             } catch (Exception e) {
@@ -185,9 +184,8 @@ public class Controller {
                                                 continue;
                                             }
 
-                                            String fileSize = index.get(fileName)[1];
-
                                             synchronized (index) {
+                                                fileSize = index.get(fileName)[1];
                                                 if (!index.containsKey(fileName)
                                                         || index.get(fileName)[0].equals("remove complete")
                                                         || index.get(fileName)[0].equals("remove in progress")
@@ -221,11 +219,13 @@ public class Controller {
                                                     System.out.println("thread woken but " + fileName + " only has " + fileAcks.get(fileName) + " acks and needs " + dstores.size());
                                                     fileAcks.wait();
                                                 }
-                                                index.put(fileName, new String[]{"remove complete", fileSize});
                                                 System.out.println(fileName + " thread woken and remove complete");
                                                 pw.println("REMOVE_COMPLETE");
                                                 fileAcks.remove(fileName);
-                                                System.out.println(hashmapToString(index));
+                                                synchronized (index) {
+                                                    index.put(fileName, new String[]{"remove complete", fileSize});
+                                                    System.out.println(hashmapToString(index));
+                                                }
                                                 if (fileAcks.containsValue(dstores.size())) {
                                                     System.out.println("notify()");
                                                     fileAcks.notify();
@@ -257,32 +257,26 @@ public class Controller {
 
                                         else if (command.startsWith("LIST")) {
                                             //Have to use starts with? command is 6 characters long with LIST??
-
-                                            if (index.size() == 0) {
-                                                pw.println("LIST");
-                                                continue;
-                                            }
-
-                                            StringBuilder sb = new StringBuilder("");
+                                            StringBuilder output = new StringBuilder("LIST");
                                             synchronized (index) {
-                                                for (var s : index.keySet()) {
-                                                    if (index.get(s)[0].equals("store complete")) {
-                                                        sb.append(" ").append(s);
+                                                if (index.size() > 0) {
+                                                    StringBuilder sb = new StringBuilder("");
+                                                    for (var s : index.keySet()) {
+                                                        if (index.get(s)[0].equals("store complete")) {
+                                                            output.append(" ").append(s);
+                                                        }
                                                     }
                                                 }
-                                                sb.deleteCharAt(0);
                                             }
 
-                                            String file_list = "LIST " + sb;
-                                            System.out.println(file_list);
-                                            pw.println(file_list);
+                                            System.out.println(output);
+                                            pw.println(output);
                                         } else {
                                             System.out.println("malformed message received: " + line);
                                         }
                                     }
                                 }
                             } catch (Exception e) {
-                                //System.out.println("error " + e);
                                 if (port == -1) {
                                     System.out.println("Client disconnected");
                                 } else {
