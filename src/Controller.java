@@ -257,6 +257,12 @@ public class Controller {
 
                                         else if (command.startsWith("LIST")) {
                                             //Have to use starts with? command is 6 characters long with LIST??
+
+                                            if (index.size() == 0) {
+                                                pw.println("LIST");
+                                                continue;
+                                            }
+
                                             StringBuilder sb = new StringBuilder("");
                                             synchronized (index) {
                                                 for (var s : index.keySet()) {
